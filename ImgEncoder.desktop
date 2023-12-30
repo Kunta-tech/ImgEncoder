@@ -1,0 +1,8 @@
+[Decktop Entry]
+Type=Application
+Name=ImgEncoder
+Comment=Encodes and Decodes Images
+Exec=ImgEncoder
+Icon=icons/app-icon.png
+Categories=
+X-AppImage-Version=
