@@ -17,11 +17,14 @@
 * Author: Saugata Kundu
 * Application Description: To Encode & Decode Images
 */
+bool isImageLoaded;
+cv::Mat cvImage_Global;
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
+    isImageLoaded = false;
     ui->setupUi(this);
     connect(ui->LoadLocal,&QPushButton::clicked,this,&MainWindow::FunLoadLocal);
     connect(ui->LoadURL,&QPushButton::clicked,this,&MainWindow::FunLoadURL);
@@ -46,7 +49,9 @@ QPixmap cvMatToQPixmap(const cv::Mat &cvImage) {
 double logisticMap(double x, double r){
     return r * x * (1 - x);
 }
-void MainWindow::encode(cv::Mat cvImage){
+void MainWindow::encode(){
+
+    isImageLoaded = true;
 
     QString PassPin = ui->PassPin->text();
     bool isNum;int p = PassPin.toInt(&isNum,10);
@@ -57,26 +62,25 @@ void MainWindow::encode(cv::Mat cvImage){
     int pa = p/100,
            pb = p%100,
         tn = (int)((pb%10)/2) + 1;
-    // printf("pa: %d, pb: %d, tn: %d\n",pa,pb,tn);
     // Initializing the Chaotic Map
     double r = 4 - (pb/1e4);    // Control parameter
     double x = 0.3 + ((pa^pb)/1e5) + (pa/1e7);     // Initial value
 
 //    The encryption algorithm
-    for(int i=0;i<cvImage.rows;i++){
-        for(int j=0;j<cvImage.cols;j++){
-            for(int k=0;k<cvImage.channels();k++){
+    for(int i=0;i<cvImage_Global.rows;i++){
+        for(int j=0;j<cvImage_Global.cols;j++){
+            for(int k=0;k<cvImage_Global.channels();k++){
                 for(int t=0;t<tn;t++){
                     // Modify pixel values using the chaotic sequence (x)
                     x = logisticMap(x, r);
-                    cvImage.at<cv::Vec3b>(i, j)[k] ^= static_cast<uchar>(x * 255);
+                    cvImage_Global.at<cv::Vec3b>(i, j)[k] ^= static_cast<uchar>(x * 255);
                 }
             }
         }
     }// End of Algo
 
     // Convert cv::Mat to QImage
-    ui->AfterImg->setPixmap(cvMatToQPixmap(cvImage));
+    ui->AfterImg->setPixmap(cvMatToQPixmap(cvImage_Global));
 }
 
 void MainWindow::FunLoadLocal(){
@@ -100,9 +104,9 @@ void MainWindow::FunLoadLocal(){
     }
 
     // Encode / Decode Image
-    cv::Mat cvImage = cv::imread(txt.toStdString());
+    cvImage_Global = cv::imread(txt.toStdString());
     ui->BeforeImg->setPixmap(pixmap);
-    encode(cvImage);
+    encode();
 }
 void MainWindow::FunLoadURL(){
     std::string imageURL = ui->Txt->toPlainText().toStdString();
@@ -131,13 +135,13 @@ void MainWindow::FunLoadURL(){
             QPixmap pixmap;
 
             // Decode the downloaded image data using OpenCV
-            cv::Mat cvImage = cv::imdecode(imageData, cv::IMREAD_COLOR); // Use appropriate flags
+            cvImage_Global = cv::imdecode(imageData, cv::IMREAD_COLOR); // Use appropriate flags
 
             // Display the image in QLabel
-            pixmap = cvMatToQPixmap(cvImage);
+            pixmap = cvMatToQPixmap(cvImage_Global);
             ui->BeforeImg->setPixmap(pixmap);
             // Encode / Decode Image
-            encode(cvImage);
+            encode();
         } else {
             QMessageBox::critical(nullptr, "Error", "Failed to fetch the image");
             return;
@@ -154,18 +158,22 @@ void MainWindow::FunLoadURL(){
 }
 void MainWindow::Browse(){
     QString filepath = QFileDialog::getOpenFileName
-        (nullptr, "Select a file", QDir::homePath(), "All Files (*);;Image Files (*.png *.jpg *.jpeg)");
+        (nullptr, "Select a file", QDir::homePath(), "Image Files (*.png *.jpg *.jpeg)");
     ui->Txt->setPlainText(filepath);
 }
 void MainWindow::Download(){
-    // Open a file dialog to select the save location
-    QString savePath = QFileDialog::getSaveFileName(nullptr, "Save File", QDir::homePath(), "PNG Files (*.png)");
-
-    if (savePath.isEmpty()){
-        QMessageBox::critical(nullptr, "Error", "Enter a file path");
+    if (!isImageLoaded){
+        QMessageBox::critical(nullptr, "Error", "No Image is loaded!!");
         return;
     }
-    ui->AfterImg->pixmap()->save(savePath);
+    // Open a file dialog to select the save location
+    QString savePath = QFileDialog::getSaveFileName(nullptr, "Save File", QDir::homePath(), "PNG File (*.png)");
+
+    if (savePath.isEmpty()) return;
+    
+    // ui->AfterImg->pixmap()->save(savePath);
+    imwrite(savePath.toStdString(), cvImage_Global);
+    
 }
 
 MainWindow::~MainWindow()

@@ -22,7 +22,7 @@ private slots:
     void FunLoadLocal();
     void FunLoadURL();
     void Browse();
-    void encode(cv::Mat);
+    void encode();
     void Download();
 };
 #endif // MAINWINDOW_H
