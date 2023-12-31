@@ -35,18 +35,13 @@ cmake --build . --target all
 ---
 
 <div style="display: flex;">
-<style>
-    img {
-        border-radius: 9px;
-    }
-</style>
     <div>
-    <img src="./examples/among-us.jpeg" style="width: 100%;" alt="Among Us 🤫" />
+    <img src="./examples/among-us.jpeg" style="width: 50%;" alt="Among Us 🤫" />
     </div>
     <br>
     Among Us 🤫
     <div>
-    <img src="./examples/among_us_2023.png" style="width: 100%;" alt="Among Us inside" />
+    <img src="./examples/among_us_2023.png" style="width: 50%;" alt="Among Us inside" />
     <br>
     The encrypted image(The pin is 2023)
     </div>
