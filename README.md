@@ -8,7 +8,8 @@ Its main purpose is to encrypt images to a non-identifiable form
 To install
 -
 '''bash
-# First cd into the Folder
+git clone https://github.com/Kunta-tech/ImgEncoder
+cd ImgEncoder # First cd into the Folder
 cmake .
 cmake --build . --target all
 '''
